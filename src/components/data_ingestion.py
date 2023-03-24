@@ -6,7 +6,16 @@ from exception import CustomException
 from logger import logging
 import pandas as pd
 from sklearn.model_selection import train_test_split
+
 from dataclasses import dataclass
+
+from components.data_transformation import DataTransformation
+from components.data_transformation import DataTransformationConfig
+
+from components.model_trainer import ModelTrainerConfig
+from components.model_trainer import ModelTrainer
+
+
 
 @dataclass
 class DataIngestionConfig:
@@ -26,6 +35,9 @@ class DataIngestion:
 
             #os.makedirs(os.path.join(self.ingestion_config.train_data_path),exist_ok=True)
             df.to_csv(self.ingestion_config.raw_data_path,index=False,header=True)
+
+            df.columns= df.columns.str.replace(" ","_")
+            df.columns= df.columns.str.replace("/","_")
 
             logging.info("Train test split initiated")
 
@@ -47,7 +59,22 @@ class DataIngestion:
 
 if __name__=='__main__':
     obj=DataIngestion()
-    obj.initiate_data_ingestion()
+    train_path,test_path=obj.initiate_data_ingestion()
+
+    data_transformation=DataTransformation()
+
+    train_array,test_array,preprocessing_path = data_transformation.initiate_data_transformation(train_path,test_path)
+
+    model_trainer= ModelTrainer()
+
+    r2_score=model_trainer.initiate_model_trainer(train_array,test_array,preprocessing_path)
+
+    logging.info("r2_score of the best model is {}".format(r2_score))
+
+
+
+
+
         
 
         
